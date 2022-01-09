@@ -190,16 +190,154 @@ def EDA(request):
                                 }
                             )
         plot_kelas = plot(kelas_data, output_type='div')
+        temp.append(data['age'][x])
+            temp.append(data['blood_pressure'][x])
+            temp.append(data['specific_gravity'][x])
+            temp.append(data['albumin'][x])
+            temp.append(data['sugar'][x])
+            temp.append(data['red_blood_cells'][x])
+            temp.append(data['pus_cell'][x])
+            temp.append(data['pus_cell_clumps'][x])
+            temp.append(data['bacteria'][x])
+            temp.append(data['blood_glucose_random'][x])
+            temp.append(data['blood_urea'][x])
+            temp.append(data['serum_creatinine'][x])
+            temp.append(data['sodium'][x])
+            temp.append(data['potassium'][x])
+            temp.append(data['haemoglobin'][x])
+            temp.append(data['packed_cell_volume'][x])
+            temp.append(data['white_blood_cell_count'][x])
+            temp.append(data['red_blood_cell_count'][x])
+            temp.append(data['hypertension'][x])
+            temp.append(data['diabetes_mellitus'][x])
+            temp.append(data['coronary_artery_disease'][x])
+            temp.append(data['appetite'][x])
+            temp.append(data['pedal_edema'][x])
+            temp.append(data['anemia'][x])
+            #temp.append(data['classification'][x])
         """
-        plot_data_utama = make_subplots(rows=1, cols=1)
-        plot_data_utama.add_trace(go.Histogram(x=data['age'].unique()), col=1, row=1)
+        name_plot = ["Age", "Blood Presure", "Specific Gravity", "Albumin", "Sugar",
+                     "Red Blood Cells", "Pus Cell", "Pus Cell Clumps", "Bacteria",
+                     "Blood Glucose Random", "Blood Urea", "Serum Creatinine",
+                     "Sodium", "Potassium", "Haemoglobin", "Packed Cell Volume",
+                     "White Blood Cell Count", "Red Blood Cell Count", "Hypertension",
+                     "Diabetes Mellitus", "Coronary Artery Disease", "Appetite",
+                     "Pedal Edema", "Anemia"
+                     ]
+        #print(data[0])
+        plot_data_utama = make_subplots(rows=4, cols=6, subplot_titles=name_plot,) 
+        plot_data_utama.add_trace(go.Histogram(x=data['age'], name=name_plot[0]), col=1, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['blood_pressure'], name=name_plot[1]), col=2, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['specific_gravity'], name=name_plot[2]), col=3, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['albumin'], name=name_plot[3]), col=4, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['sugar'], name=name_plot[4]), col=5, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['red_blood_cells'], name=name_plot[5]), col=6, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=data['pus_cell'], name=name_plot[6]), col=1, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['pus_cell_clumps'], name=name_plot[7]), col=2, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['bacteria'], name=name_plot[8]), col=3, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['blood_glucose_random'], name=name_plot[9]), col=4, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['blood_urea'], name=name_plot[10]), col=5, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['serum_creatinine'], name=name_plot[11]), col=6, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=data['sodium'], name=name_plot[12]), col=1, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['potassium'], name=name_plot[13]), col=2, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['haemoglobin'], name=name_plot[14]), col=3, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['packed_cell_volume'], name=name_plot[15]), col=4, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['white_blood_cell_count'], name=name_plot[16]), col=5, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['red_blood_cell_count'], name=name_plot[17]), col=6, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=data['hypertension'], name=name_plot[18]), col=1, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=data['diabetes_mellitus'], name=name_plot[19]), col=2, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=data['coronary_artery_disease'], name=name_plot[20]), col=3, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=data['appetite'], name=name_plot[21]), col=4, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=data['pedal_edema'], name=name_plot[22]), col=5, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=data['anemia'], name=name_plot[23]), col=6, row=4)
         
+        #FIG Update
+        plot_data_utama.update_layout(height=800, width=1248, title_text="Info Label", title_font_size=20, title_x=0.5)
+        
+        #Fig Export
         plot_data_div = plot(plot_data_utama, output_type='div')
         
         
-    
+        #Correlation Matrix
+        data2 = data.drop('classification', axis=1)
+        dfc = data2.corr()
+        z = dfc.values.tolist()
+        z_text = [[str(round(y,1)) for y in x] for x in z]
+        
+        plot_correlation = ff.create_annotated_heatmap(
+                z=z,
+                x=list(data2.columns),
+                y=list(data2.columns),
+                zmax=1, zmin=-1,
+                annotation_text=z_text, colorscale='agsunset',
+                showscale=True,
+                hoverongaps=True
+            )
+
+        plot_correlation.update_layout(title_text='Correlation matrix', height=800, width=1096, title_x=0.5, title_y=1, title_font_size=20)
+
+        plot_correlation_div = plot(plot_correlation, output_type='div')
+        
+        
+        #Distribution Diagram 
+        net_category_dm = data['diabetes_mellitus'].value_counts().to_frame().reset_index().rename(columns={'index':'diabetes_mellitus','diabetes_mellitus':'count'})
+        net_category_htn=data['hypertension'].value_counts().to_frame().reset_index().rename(columns={'index':'hypertension','hypertension':'count'})
+        net_category_pcc=data['pus_cell_clumps'].value_counts().to_frame().reset_index().rename(columns={'index':'pus_cell_clumps','pus_cell_clumps':'count'})
+        net_category_ane=data['anemia'].value_counts().to_frame().reset_index().rename(columns={'index':'anemia','anemia':'count'})
+        
+        
+        colors=['orange','lightskyblue']
+        
+        dist_diagram = make_subplots(rows=1, cols=2, subplot_titles=["Diabetes Mellitus", "Hypertension", "Pus Cell Clumps", "Anemia"],
+                                     specs=[[{"type": "pie"}, {"type": "pie"}],])
+        
+        dist_diagram.add_trace(go.Pie(
+                                labels=net_category_dm['diabetes_mellitus'], 
+                                values=net_category_dm['count'],
+                                name="Diabetes Mellitus"), 
+                                col=1, row=1)
+        
+        dist_diagram.add_trace(go.Pie(
+                                labels=net_category_htn['hypertension'], 
+                                values=net_category_htn['count'],
+                                name='Hypertension'), 
+                                col=2, row=1)
+        
+
+ 
+        #dist_dm = go.Figure([go.Pie(labels=net_category_dm['diabetes_mellitus'], values=net_category_dm['count'])])
+
+        dist_diagram.update_traces(hoverinfo='label+percent',textinfo='percent+label', textfont_size=15,marker=dict(colors=colors,line=dict(color="black",width=3)))
+        
+        dist_diagram.update_layout(title="Diagram Distribution",title_x=0.5)
+        
+        dist_diagram_div = plot(dist_diagram, output_type='div')
+            
+        
+        dist_diagram_2 = make_subplots(rows=1, cols=2, subplot_titles=["Pus Cell Clumps", "Anemia"],
+                                     specs=[[{"type": "pie"}, {"type": "pie"}],])
+        
+        dist_diagram_2.add_trace(go.Pie(
+                                labels=net_category_pcc['pus_cell_clumps'], 
+                                values=net_category_pcc['count'],
+                                name='Pus Cell Clumps'),
+                                col=1, row=1)
+        
+        dist_diagram_2.add_trace(go.Pie(
+                                labels=net_category_ane['anemia'], 
+                                values=net_category_ane['count'],
+                                name='Anemia'),
+                                col=2, row=1)
+        
+        dist_diagram_2.update_traces(hoverinfo='label+percent',textinfo='percent+label', textfont_size=15,marker=dict(colors=colors,line=dict(color="black",width=3)))
+        
+        dist_diagram_2_div = plot(dist_diagram_2, output_type='div')
+        
         return render(request, 'administrator/EDA.html',context={
                                                                 'plot_div_kelas': plot_data_div,
+                                                                'plot_div_korelasi': plot_correlation_div,
+                                                                'plot_div_diagram': dist_diagram_div,
+                                                                'plot_div_diagram_2': dist_diagram_2_div,
                                                                 
                                                                                                                         
                                                                 }
@@ -216,7 +354,7 @@ def EDA(request):
 def preproses(request):
     if default_storage.exists('dataset.csv'):
         
-        CKD_dataset = pd.read_csv("kidney_disease.csv", header=0, na_values="?")
+        CKD_dataset = pd.read_csv("./media/dataset.csv", header=0, na_values="?")
         cols_names = {"bp": "blood_pressure",
                     "sg": "specific_gravity",
                     "al": "albumin",
