@@ -1,4 +1,4 @@
----- Cara Deployment:
+# Cara Deployment:
 install semua requirement pada requirement.txt
 
 run diterminal > python manage.py runserver
