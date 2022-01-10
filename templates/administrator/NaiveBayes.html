@@ -16,7 +16,7 @@ Hasil | Klasifikasi Cronic Kidney Disease
 <!--Animate.css [ OPTIONAL ]-->
 <link href="{% static 'plugins/animate-css/animate.min.css' %}" rel="stylesheet">
 
-  <link href="{% static "plugins/dropify/css/dropify.css" %}" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="{% static 'plugins/dropify/css/dropify.css' %}" type="text/css" rel="stylesheet" media="screen,projection">
 {% endblock %}
 
 {% block content %}
@@ -24,7 +24,7 @@ Hasil | Klasifikasi Cronic Kidney Disease
     <div id="page-head">
 
 <div class="pad-all text-center">
-<h3>Hasil Klasifikasi Algoritma SVM</h3>
+<h3>Hasil Klasifikasi Algoritma Naive Bayes</h3>
 <p>AKURASI & CONFUSION MATRIX</p>
 </div>
         </div>
@@ -34,18 +34,28 @@ Hasil | Klasifikasi Cronic Kidney Disease
     <!--===================================================-->
    <div class="panel">
           <div class="panel-heading">
-              <h3 class="panel-title">Result SVM</h3>
+              <h3 class="panel-title">Result NB</h3>
           </div>
           <div class="panel-body demo-nifty-btn">
             <table id="demo-dt-basic3" class="table table-striped table-bordered" cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        <th>Akurasi</th>
+                        <th>Akurasi Training</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>{{skor_acc}}%</td>
+                    </tr>
+                </tbody>
+                <thead>
+                    <tr>
+                        <th>Akurasi Validasi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{skor_val}}%</td>
                     </tr>
                 </tbody>
             </table>

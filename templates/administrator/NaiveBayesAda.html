@@ -1,12 +1,12 @@
 {% extends "layouts/administrator.html" %}
 {% load static %}
 
-{% block EDA %}
+{% block NaiveBayesAda %}
 active-sub
 {% endblock %}
 
 {% block title %}
-EDA | Klasifikasi Cronic Kidney Disease
+Hasil | Klasifikasi Cronic Kidney Disease
 {% endblock %}
 
 {% block css %}
@@ -24,66 +24,66 @@ EDA | Klasifikasi Cronic Kidney Disease
     <div id="page-head">
 
 <div class="pad-all text-center">
-<h3>Explanatory Data Analysis</h3>
-<p>Histogram, Correlation Matrix, </p>
+<h3>Hasil Klasifikasi Algoritma AdaBoost + NaiveBayes</h3>
+<p>AKURASI & CONFUSION MATRIX</p>
 </div>
         </div>
 
 
     <!--Page content-->
     <!--===================================================-->
-    <div id="page-content">
-        <div class="panel">
-              <div class="panel-heading">
-                  <h3 class="panel-title">Hasil</h3>
-              </div>
-
-              <div class="panel-body">
-                {% autoescape off %}
-                {{ plot_div_kelas }}
-                {% endautoescape %}
-                
-              </div>
-
-              <div class="panel-body">
-                {% autoescape off %}
-                {{ plot_div_korelasi }}
-                {% endautoescape %}
-                
-              </div>
-
-              
-
-                <div class="panel-body">
-                {% autoescape off %}
-                {{ plot_div_diagram }}
-                {% endautoescape %}
-                
-              </div>
-              <!-- 
-              <div class="panel-body">
-                {% autoescape off %}
-                {{ plot_div_diagram_2 }}
-                {% endautoescape %}
-                
-              </div>
-
-              -->
-
-              
-
-        </div>
-
-  <div class="panel">
+   <div class="panel">
           <div class="panel-heading">
-              <h3 class="panel-title">Process</h3>
+              <h3 class="panel-title">Result AdaBoost + NaiveBayes</h3>
           </div>
           <div class="panel-body demo-nifty-btn">
-            <a  class="btn btn-lg btn-primary" href="{% url 'administrator:dataset' %}">Klasifikasi Naive Bayes</a>
+            <table id="demo-dt-basic3" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>Akurasi Training</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{skor_acc}}%</td>
+                    </tr>
+                </tbody>
+                <thead>
+                    <tr>
+                        <th>Akurasi Validasi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{skor_val}}%</td>
+                    </tr>
+                </tbody>
+            </table>
             </div>
-  </div>
+</div>
 
-    <!--===================================================-->
+<div class="panel-body">
+    <div class="panel-heading">
+        <h3 class="panel-title">Laporan Klasifikasi</h3>
+    </div>
+    
+    {% autoescape off %}
+    {{ Report }}
+    {% endautoescape %}
+  
+</div> 
+
+<div class="panel-body">
+    <div class="panel-heading">
+        <h3 class="panel-title">Confusion Matrix Naive Bayes</h3>
+    </div>
+    
+    {% autoescape off %}
+    {{ plot_div_conf_nb }}
+    {% endautoescape %}
+    
+</div>    
+<!--===================================================-->
     <!--End page content-->
 
 </div>

@@ -1,3 +1,4 @@
+from django.core.files import storage
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -32,12 +33,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.metrics import accuracy_score
-from sklearn import model_selection
-from sklearn.preprocessing import LabelEncoder
-from sklearn import metrics
-from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold
+from sklearn.preprocessing import *
+from sklearn.model_selection import *
 from sklearn import naive_bayes
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.metrics import *
+from sklearn.ensemble import AdaBoostClassifier
 
 
 import time
@@ -307,28 +307,31 @@ def EDA(request):
         
         
         #Distribution Diagram 
-        net_category_dm = data['diabetes_mellitus'].value_counts().to_frame().reset_index().rename(columns={'index':'diabetes_mellitus','diabetes_mellitus':'count'})
-        net_category_htn=data['hypertension'].value_counts().to_frame().reset_index().rename(columns={'index':'hypertension','hypertension':'count'})
-        net_category_pcc=data['pus_cell_clumps'].value_counts().to_frame().reset_index().rename(columns={'index':'pus_cell_clumps','pus_cell_clumps':'count'})
-        net_category_ane=data['anemia'].value_counts().to_frame().reset_index().rename(columns={'index':'anemia','anemia':'count'})
         
+        data2 = pd.read_csv('./media/dataset.csv')
+        
+        #net_category_dm = data['diabetes_mellitus'].value_counts().to_frame().reset_index().rename(columns={'index':'diabetes_mellitus','diabetes_mellitus':'count'})
+        #net_category_htn=data['hypertension'].value_counts().to_frame().reset_index().rename(columns={'index':'hypertension','hypertension':'count'})
+        #net_category_pcc=data['pus_cell_clumps'].value_counts().to_frame().reset_index().rename(columns={'index':'pus_cell_clumps','pus_cell_clumps':'count'})
+        #net_category_ane=data['anemia'].value_counts().to_frame().reset_index().rename(columns={'index':'anemia','anemia':'count'})
+        net_category_class = data['classification'].value_counts().to_frame().reset_index().rename(columns={'index':'classification','classification':'count'})
         
         colors=['orange','lightskyblue']
         
-        dist_diagram = make_subplots(rows=1, cols=2, subplot_titles=["Diabetes Mellitus", "Hypertension", "Pus Cell Clumps", "Anemia"],
-                                     specs=[[{"type": "pie"}, {"type": "pie"}],])
+        dist_diagram = make_subplots(rows=1, cols=1, subplot_titles=["Classification",],
+                                     specs=[[{"type": "pie"}, ],])
         
         dist_diagram.add_trace(go.Pie(
-                                labels=net_category_dm['diabetes_mellitus'], 
-                                values=net_category_dm['count'],
-                                name="Diabetes Mellitus"), 
+                                labels=net_category_class['classification'], 
+                                values=net_category_class['count'],
+                                name="Classifications"), 
                                 col=1, row=1)
         
-        dist_diagram.add_trace(go.Pie(
-                                labels=net_category_htn['hypertension'], 
-                                values=net_category_htn['count'],
-                                name='Hypertension'), 
-                                col=2, row=1)
+        #dist_diagram.add_trace(go.Pie(
+        #                        labels=net_category_htn['hypertension'], 
+        #                        values=net_category_htn['count'],
+        #                        name='Hypertension'), 
+        #                       col=2, row=1)
         
 
  
@@ -341,30 +344,30 @@ def EDA(request):
         dist_diagram_div = plot(dist_diagram, output_type='div')
             
         
-        dist_diagram_2 = make_subplots(rows=1, cols=2, subplot_titles=["Pus Cell Clumps", "Anemia"],
-                                     specs=[[{"type": "pie"}, {"type": "pie"}],])
+        #dist_diagram_2 = make_subplots(rows=1, cols=2, subplot_titles=["Pus Cell Clumps", "Anemia"],
+        #                             specs=[[{"type": "pie"}, {"type": "pie"}],])
         
-        dist_diagram_2.add_trace(go.Pie(
-                                labels=net_category_pcc['pus_cell_clumps'], 
-                                values=net_category_pcc['count'],
-                                name='Pus Cell Clumps'),
-                                col=1, row=1)
+        #dist_diagram_2.add_trace(go.Pie(
+        #                        labels=net_category_pcc['pus_cell_clumps'], 
+        #                        values=net_category_pcc['count'],
+        #                        name='Pus Cell Clumps'),
+        #                        col=1, row=1)
         
-        dist_diagram_2.add_trace(go.Pie(
-                                labels=net_category_ane['anemia'], 
-                                values=net_category_ane['count'],
-                                name='Anemia'),
-                                col=2, row=1)
+        #dist_diagram_2.add_trace(go.Pie(
+        #                        labels=net_category_ane['anemia'], 
+        #                        values=net_category_ane['count'],
+        #                        name='Anemia'),
+        #                        col=2, row=1)
         
-        dist_diagram_2.update_traces(hoverinfo='label+percent',textinfo='percent+label', textfont_size=15,marker=dict(colors=colors,line=dict(color="black",width=3)))
+        #dist_diagram_2.update_traces(hoverinfo='label+percent',textinfo='percent+label', textfont_size=15,marker=dict(colors=colors,line=dict(color="black",width=3)))
         
-        dist_diagram_2_div = plot(dist_diagram_2, output_type='div')
+        #dist_diagram_2_div = plot(dist_diagram_2, output_type='div')
         
         return render(request, 'administrator/EDA.html',context={
                                                                 'plot_div_kelas': plot_data_div,
                                                                 'plot_div_korelasi': plot_correlation_div,
                                                                 'plot_div_diagram': dist_diagram_div,
-                                                                'plot_div_diagram_2': dist_diagram_2_div,
+                                                                #'plot_div_diagram_2': dist_diagram_2_div,
                                                                 
                                                                                                                         
                                                                 }
@@ -495,26 +498,36 @@ def preproses(request):
 
 @login_required(login_url=settings.LOGIN_URL)
 def NaiveBayes(request):
-    if default_storage.exists('dataset.csv'):
-        Target = pd.read_csv(default_storage.path('target.csv'))
-        Features = pd.read_csv(default_storage.path('fitur.csv'))
-        X_train, X_test, y_train, y_test = train_test_split(Features, Target, test_size=0.3, random_state=52)
+    if default_storage.exists('dataset_encode.csv'):
+        #Target = pd.read_csv(default_storage.path('target.csv'))
+        dataset = pd.read_csv('./media/dataset_encode.csv')
+        X = dataset.iloc[:,:-1].values
+        y = dataset.iloc[:,-1].values
+        sc = StandardScaler()
+        X = sc.fit_transform(X)
         
-        print(X_test)
-        print(y_test)
-        print(X_train.columns)
+        X_train , X_test , y_train , y_test   = train_test_split(X,y,test_size = 0.2 , random_state=420, shuffle=True)
+        
+        #print(X_test)
+        #print(y_test)
+        #print(X_train.columns)
         
         Logit_Model = naive_bayes.GaussianNB()
-        Logit_Model.fit(X_train,y_train)
+        Logit_Model.fit(X_train, y_train)
+        
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        n_scores_1 = cross_val_score(Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
+        Train = n_scores_1.mean()
+        
         Prediction = Logit_Model.predict(X_test)
-        Score = accuracy_score(y_test,Prediction)
+        Val_Score = accuracy_score(y_test,Prediction)
         Report = classification_report(y_test,Prediction)
 
         print(Prediction)
-        print("Accuracy Score: {}%".format(Score*100))
+        print("Accuracy Score: {}%".format(Val_Score*100))
         print(Report)
         
-        labels=['High', 'Low', 'Mid']
+        labels=['NonCKD', 'CKD']
         preds = np.array(Logit_Model.predict(X_test))
         #preds2 = Logit_Model.score(X_test, y_test)
         #preds = np.argmax(preds, axis = -1)
@@ -528,12 +541,12 @@ def NaiveBayes(request):
                         yaxis_title="Truth",
                         xaxis = dict(
                                         tickmode = 'array',
-                                        tickvals = [0,1,2],
+                                        tickvals = [0,1],
                                         ticktext = labels
                                     ),
                         yaxis = dict(
                                         tickmode = 'array',
-                                        tickvals = [0,1,2],
+                                        tickvals = [0,1],
                                         ticktext = labels
                                     ),
                         autosize = False,
@@ -553,38 +566,168 @@ def NaiveBayes(request):
         
         csv_report_nb = csv_report_nb.iloc[:-1, :].T
         csv_report_nb = csv_report_nb.round(3)
+        #print(csv_report_nb)
         
-        z = csv_report_nb.values.tolist()
-        x = csv_report_nb.columns.to_list()
-        y = csv_report_nb.index.tolist()
+        
+        z_data = csv_report_nb.values.tolist()
+        x_data = csv_report_nb.columns.to_list()
+        y_data = csv_report_nb.index.tolist()
+        
+
+        y_data[0] = 'NonCKD'
+        y_data[1] = 'CKD'
+  
 
 
-        fig_report = ff.create_annotated_heatmap(z, x=x, y=y, colorscale='blues', 
-                                        #x=['High', 'Low', 'Mid'], y=['High', 'Low', 'Mid']
-                                        )
+        fig_report = ff.create_annotated_heatmap(z_data, x_data, y_data, colorscale='blues', )
+                                      
+        
 
-        #fig.update_yaxes(autorange="reversed")
-        fig_report.update_layout(title="Plot Title",
+        fig_report.update_yaxes(autorange="reversed")
+        fig_report.update_layout(title="Classification Report",
                         #xaxis_title="x Axis Title",
                         #yaxis_title="y Axis Title",
                         autosize = False,
-                        width = 700,
-                        height = 700,                  
+                        width = 600,
+                        height = 400,                  
                         )
         
         for i in range(len(fig_report.layout.annotations)):
                 fig_report.layout.annotations[i].font.size = 15
                         
-        fig_report.update_yaxes(categoryorder='category descending')
+        fig_report.update_yaxes(categoryorder='category ascending')
         plot_report_nb = plot(fig_report, output_type='div')
 
         
-        return render(request, 'administrator/NaiveBayes.html',{'Report': plot_report_nb, 'skor_acc':Score, 'plot_div_conf_nb': plot_conf_nb })
+        return render(request, 'administrator/NaiveBayes.html',{'Report': plot_report_nb, 
+                                                                'skor_acc':Val_Score*100,
+                                                                'skor_val':Train*100,
+                                                                'plot_div_conf_nb': plot_conf_nb })
 
     else:
         messages.error(request,'Dataset belum diinputkan!')
         return redirect('/administrator/dataset/')
         pass
+
+@login_required(login_url=settings.LOGIN_URL)
+def NaiveBayesAda(request):
+    if default_storage.exists('dataset_encode.csv'):
+        #Target = pd.read_csv(default_storage.path('target.csv'))
+        dataset = pd.read_csv('./media/dataset_encode.csv')
+        X = dataset.iloc[:,:-1].values
+        y = dataset.iloc[:,-1].values
+        sc = StandardScaler()
+        X = sc.fit_transform(X)
+        
+        X_train , X_test , y_train , y_test   = train_test_split(X,y,test_size = 0.2 , random_state=420, shuffle=True)
+        
+        #print(X_test)
+        #print(y_test)
+        #print(X_train.columns)
+        
+        
+        Logit_Model = naive_bayes.GaussianNB()
+        boost_Logit_Model = AdaBoostClassifier(base_estimator=Logit_Model,
+                                               n_estimators=50,
+                                               learning_rate=0.5,
+                                               algorithm='SAMME.R',
+                                               random_state=1
+                                               )
+        
+        boost_Logit_Model.fit(X_train, y_train)
+        
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        n_scores_1 = cross_val_score(boost_Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
+        Train = n_scores_1.mean()
+        
+        Prediction = boost_Logit_Model.predict(X_test)
+        Val_Score = accuracy_score(y_test,Prediction)
+        Report = classification_report(y_test,Prediction)
+
+        print(Prediction)
+        print("Accuracy Score: {}%".format(Val_Score*100))
+        print(Report)
+        
+        labels=['NonCKD', 'CKD']
+        preds = np.array(boost_Logit_Model.predict(X_test))
+        #preds2 = Logit_Model.score(X_test, y_test)
+        #preds = np.argmax(preds, axis = -1)
+        orig = y_test
+        conf = confusion_matrix(orig, preds)
+        
+        fig = ff.create_annotated_heatmap(conf, colorscale='blues', x=labels, y=labels)
+        fig.update_yaxes(autorange="reversed")
+        fig.update_layout(
+                        xaxis_title="Predicted",
+                        yaxis_title="Truth",
+                        xaxis = dict(
+                                        tickmode = 'array',
+                                        tickvals = [0,1],
+                                        ticktext = labels
+                                    ),
+                        yaxis = dict(
+                                        tickmode = 'array',
+                                        tickvals = [0,1],
+                                        ticktext = labels
+                                    ),
+                        autosize = False,
+                        width = 600,
+                        height = 600,
+                        )
+                        
+        fig.update_xaxes(side="top")
+        plot_conf_nb = plot(fig, output_type='div')
+        
+        csv_report_nb = pd.DataFrame(classification_report(orig,
+                                                    preds,
+                                                    output_dict=True,
+                                                    
+                                                    )
+                                    )
+        
+        csv_report_nb = csv_report_nb.iloc[:-1, :].T
+        csv_report_nb = csv_report_nb.round(3)
+        #print(csv_report_nb)
+        
+        
+        z_data = csv_report_nb.values.tolist()
+        x_data = csv_report_nb.columns.to_list()
+        y_data = csv_report_nb.index.tolist()
+
+        y_data[0] = 'NonCKD'
+        y_data[1] = 'CKD'
+
+
+        fig_report = ff.create_annotated_heatmap(z_data, x_data, y_data, colorscale='blues', )
+                                      
+        
+
+        fig_report.update_yaxes(autorange="reversed")
+        fig_report.update_layout(title="Classification Report",
+                        #xaxis_title="x Axis Title",
+                        #yaxis_title="y Axis Title",
+                        autosize = False,
+                        width = 600,
+                        height = 400,                  
+                        )
+        
+        for i in range(len(fig_report.layout.annotations)):
+                fig_report.layout.annotations[i].font.size = 15
+                        
+        fig_report.update_yaxes(categoryorder='category ascending')
+        plot_report_nb = plot(fig_report, output_type='div')
+
+        
+        return render(request, 'administrator/NaiveBayesAda.html',{'Report': plot_report_nb, 
+                                                                'skor_acc':Val_Score*100,
+                                                                'skor_val':Train*100,
+                                                                'plot_div_conf_nb': plot_conf_nb })
+
+    else:
+        messages.error(request,'Dataset belum diinputkan!')
+        return redirect('/administrator/dataset/')
+        pass
+
 
 
 @login_required(login_url=settings.LOGIN_URL)
