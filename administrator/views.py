@@ -38,11 +38,18 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split, RepeatedStratifiedKFold
 from sklearn import naive_bayes
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-from genetic_selection import GeneticSelectionCV
 
 
 import time
 import numpy as np
+
+from .arff_convert import arff_convert
+
+
+header = ['age','bp','sg','al','su','rbc','pc','pcc',
+    'ba','bgr','bu','sc','sod','pot','hemo','pcv',
+    'wbcc','rbcc','htn','dm','cad','appet','pe','ane',
+    'classification']
 
 
 # Create your views here.
@@ -70,13 +77,33 @@ def NaiveBayes_Algen(request):
 
 ##Main Module
 
+
 @login_required(login_url=settings.LOGIN_URL)
 def dataset(request):
+    
     if request.method == 'POST':
         file = request.FILES['data']
+        
+        if file:
+            #if default_storage.exists(file):
+            #    default_storage.delete(file)
+            filename = file.name
+            
+            print(filename)
+            if filename.endswith('.arff'):
+                if not default_storage.exists(file.name):
+                    default_storage.save(file.name, file)
+                
+                #else:
+                  #  default_storage.delete(file)
+                
+                    
         if default_storage.exists('dataset.csv'):
             default_storage.delete('dataset.csv')
-        file_name = default_storage.save('dataset.csv', file)
+            file_name = default_storage.save('dataset.csv', file)
+
+        if filename.endswith('.arff'):
+            arff_convert(filename)
 
         dataset = []
         data = pd.read_csv(default_storage.path('dataset.csv'))
@@ -578,21 +605,7 @@ def hasil_nb_algen(request):
         Features = pd.read_csv(default_storage.path('fitur.csv'))
         X_train, X_test, y_train, y_test = train_test_split(Features, Target, test_size=0.3, random_state=52)
         
-        selector = GeneticSelectionCV(estimator,
-                                  cv=rkf, #Cross Validation
-                                  verbose=1,
-                                  scoring="accuracy",
-                                  max_features=jumlah_fitur, #jumlah fitur
-                                  n_population=jumlah_populasi,
-                                  crossover_proba=crossover,
-                                  mutation_proba=mutasi,
-                                  n_generations=jumlah_generasi,
-                                  crossover_independent_proba=0.5,
-                                  mutation_independent_proba=0.05,
-                                  #tournament_size=3,
-                                  n_gen_no_change=jumlah_gen_no_change,
-                                  caching=True,
-                                  n_jobs=-1)
+        selector = []
         
         selector = selector.fit(X_train,y_train)
         
