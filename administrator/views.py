@@ -57,7 +57,14 @@ header = ['age','bp','sg','al','su','rbc','pc','pcc',
 
 
 hasil_valid = 'uniform'
-interval_kelas = 24
+interval_kelas = 100
+
+Hasil_NB_pred = None
+Hasil_NB_score = None
+Hasil_AdaNB_pred = None
+Hasil_AdaNB_score = None
+Hasil_NB_Custom_pred = None
+Hasil_NB_Custom_score = None
 
 #================= END Global Variable ================
 
@@ -75,9 +82,6 @@ def tentang(request):
 #def SVM(request):
 #    return render(request, 'administrator/SVM.html')
 
-@login_required(login_url=settings.LOGIN_URL)
-def NaiveBayes_Algen(request):
-    return render(request, 'administrator/NaiveBayes_Algen.html')
 
 #@login_required(login_url=settings.LOGIN_URL)
 #def SVMRBFIG(request):
@@ -508,6 +512,11 @@ def preproses(request):
 @login_required(login_url=settings.LOGIN_URL)
 def NaiveBayes(request):
     if default_storage.exists('dataset_encode.csv'):
+        
+        #Global Var
+        global Hasil_NB_pred
+        global Hasil_NB_score
+        #==========
         #Target = pd.read_csv(default_storage.path('target.csv'))
         dataset = pd.read_csv('./media/dataset_encode.csv')
         X = dataset.iloc[:,:-1].values
@@ -531,6 +540,9 @@ def NaiveBayes(request):
         Prediction = Logit_Model.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
         Report = classification_report(y_test,Prediction)
+        
+        Hasil_NB_score = n_scores_1
+        Hasil_NB_pred = Val_Score
 
         print(Prediction)
         print("Accuracy Score: {}%".format(Val_Score*100))
@@ -621,6 +633,12 @@ def NaiveBayes(request):
 @login_required(login_url=settings.LOGIN_URL)
 def NaiveBayesAda(request):
     if default_storage.exists('dataset_encode.csv'):
+        
+        #Global var
+        global Hasil_AdaNB_pred
+        global Hasil_AdaNB_score
+        
+        #==============
         #Target = pd.read_csv(default_storage.path('target.csv'))
         dataset = pd.read_csv('./media/dataset_encode.csv')
         X = dataset.iloc[:,:-1].values
@@ -652,6 +670,9 @@ def NaiveBayesAda(request):
         Prediction = boost_Logit_Model.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
         Report = classification_report(y_test,Prediction)
+        
+        Hasil_AdaNB_pred = Val_Score
+        Hasil_AdaNB_score = n_scores_1
 
         print(Prediction)
         print("Accuracy Score: {}%".format(Val_Score*100))
@@ -908,7 +929,7 @@ def Diskritisasi(request):
         fig_disc.add_trace(go.Histogram(x=data_hist[23], name=name_plot[23]), col=6, row=4)
         
         fig_disc.update_layout(height=800, width=1248, 
-                               title_text="Data Terdiskritisasi Metode {} dan".format(hasil), 
+                               title_text="Data Terdiskritisasi Metode {} dengan {} interval kelas".format(hasil, interval_kelas), 
                                title_font_size=20, title_x=0.5)
         
         plot_data_disc_div = plot(fig_disc, output_type='div')
@@ -926,6 +947,12 @@ def Diskritisasi(request):
 @login_required(login_url=settings.LOGIN_URL)
 def NB_Custom(request):
     if default_storage.exists('dataset_encode.csv'):
+        
+        #Global Var
+        global Hasil_NB_Custom_pred
+        global Hasil_NB_Custom_score
+        #==============
+        
         #Target = pd.read_csv(default_storage.path('target.csv'))
         dataset = pd.read_csv('./media/dataset_encode.csv')
         X = dataset.iloc[:,:-1].values
@@ -979,12 +1006,17 @@ def NB_Custom(request):
         Prediction = pipe.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
         Report = classification_report(y_test,Prediction)
+        
+        Hasil_NB_Custom_pred = Val_Score
+        Hasil_NB_Custom_score = n_scores_1
 
         print(Prediction)
         print("Accuracy Score: {}%".format(Val_Score*100))
         print(Report)
         print(interval_kelas)
         print(hasil_valid)
+        #print(Hasil_NB_Custom_score)
+        #print(Val_Score)
         
         labels=['NonCKD', 'CKD']
         preds = np.array(pipe.predict(X_test))
@@ -1059,13 +1091,80 @@ def NB_Custom(request):
         return render(request, 'administrator/NB_Custom.html',{'Report': plot_report_nb, 
                                                                 'skor_acc':Train_Score*100,
                                                                 'skor_val':Val_Score*100,
-                                                                'plot_div_conf_nb': plot_conf_nb })
+                                                                'plot_div_conf_nb': plot_conf_nb,
+                                                                'metode': hasil_valid,
+                                                                'interval_kelas': interval_kelas,
+                                                                })
 
     else:
         messages.error(request,'Dataset belum diinputkan!')
         return redirect('/administrator/dataset/')
         pass
 
+@login_required(login_url=settings.LOGIN_URL)
+def Rangkuman(request):
+    
+    print(Hasil_NB_Custom_pred)
+    print(Hasil_AdaNB_pred)
+    print(Hasil_NB_pred)
+    
+    if Hasil_NB_Custom_pred == None and Hasil_AdaNB_pred == None and Hasil_NB_pred == None:
+        
+        return render(request, 'administrator/Rangkuman_kosong.html',{})
+    
+    else:
+        hasil_nb_score = Hasil_NB_score
+        hasil_nb_pred = Hasil_NB_pred
+        
+        hasil_adanb_score = Hasil_AdaNB_score
+        hasil_adanb_pred = Hasil_AdaNB_pred
+        
+        hasil_nb_custom_score = Hasil_NB_Custom_score
+        hasil_nb_custom_pred = Hasil_NB_Custom_pred
+        
+        fig_report = go.Figure()
+        fig_report.add_trace(go.Scatter(x=list(range(1, len(hasil_nb_score))),
+                             y=hasil_nb_score,
+                             mode='lines',
+                             name='Naive Bayes'
+                             ))
+        
+        fig_report.add_trace(go.Scatter(x=list(range(1, len(hasil_adanb_score))),
+                             y=hasil_adanb_score,
+                             mode='lines',
+                             name='AdaBoost + NB'
+                             ))
+        fig_report.add_trace(go.Scatter(x=list(range(1, len(hasil_nb_custom_score))),
+                             y=hasil_nb_custom_score,
+                             mode='lines',
+                             name='NB Custom'
+                             ))
+        
+        fig_report.update_layout(
+                            title="Rangkuman Training",
+                            xaxis_title="Total Iterasi",
+                            yaxis_title="Persen Akurasi",
+                            #legend_title="Method",
+                            font=dict(
+                                family="Courier New, monospace",
+                                size=18,
+                                color="RebeccaPurple"
+                            )
+                        )
+        
+        fig_Report = plot(fig_report, output_type='div') 
+        
+        return render(request, 'administrator/Rangkuman.html',{
+                                                                'NB_score': hasil_nb_score.mean() * 100,
+                                                                'NB_pred': hasil_nb_pred * 100,
+                                                                'AdaNB_score': hasil_adanb_score.mean() * 100,
+                                                                'AdaNB_pred': hasil_adanb_pred * 100,
+                                                                'NBCustom_score': hasil_nb_custom_score.mean() *100,
+                                                                'NBCustom_pred': hasil_nb_custom_pred * 100,
+                                                                
+                                                                'fig_report_div': fig_Report
+                                                                
+                                                                })
 
 
 @login_required(login_url=settings.LOGIN_URL)

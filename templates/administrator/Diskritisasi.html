@@ -51,7 +51,7 @@ Hasil | Klasifikasi Cronic Kidney Disease
             <div class="col-sm-6">
             <div class="form-group">
                 <label class="control-label">Interval Jumlah Kelas</label>
-                <input type="number" class="form-control" name="n_bins" placeholder="Bilangan Bulat, Contoh: 10">
+                <input type="number" class="form-control" name="n_bins" placeholder="Bilangan Bulat, Contoh: 10, nilai default = 100, Max = 320">
             </div>
             </div>                
         </div>
@@ -89,6 +89,15 @@ Hasil | Klasifikasi Cronic Kidney Disease
                 </div>
             
             </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title">Process</h3>
+        </div>
+        <div class="panel-body demo-nifty-btn">
+          <a  class="btn btn-lg btn-primary" href="{% url 'administrator:NB_Custom' %}">Klasifikasi Naive Bayes Custom</a>
+          </div>
     </div>
 
 

@@ -15,8 +15,8 @@ urlpatterns = [
     path('InfoGainR/', views.InfoGainR, name='InfoGainR'),
     path('Diskritisasi/', views.Diskritisasi, name='Diskritisasi'),
     path('NB_Custom/', views.NB_Custom, name='NB_Custom'),
-    path('hasil_nb_algen/', views.hasil_nb_algen, name='hasil_nb_algen'),
     #path('hasilsvmrbf/', views.hasilsvmrbf, name='hasilsvmrbf'),
     #path('SVMRBFIG/', views.SVMRBFIG, name='SVMRBFIG'),
+    path('Rangkuman/', views.Rangkuman, name='Rangkuman'),
 
 ]
