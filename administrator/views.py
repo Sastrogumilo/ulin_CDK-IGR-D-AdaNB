@@ -6,6 +6,8 @@ from django.utils.decorators import decorator_from_middleware
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.contrib import messages
+from django.forms import *
+from django import forms
 import random
 from operator import itemgetter
 import zipfile
@@ -38,6 +40,7 @@ from sklearn.model_selection import *
 from sklearn import naive_bayes
 from sklearn.metrics import *
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.pipeline import Pipeline
 
 
 import time
@@ -45,12 +48,18 @@ import numpy as np
 
 from .arff_convert import arff_convert
 
+#================== Global Variable ====================
 
 header = ['age','bp','sg','al','su','rbc','pc','pcc',
     'ba','bgr','bu','sc','sod','pot','hemo','pcv',
     'wbcc','rbcc','htn','dm','cad','appet','pe','ane',
     'classification']
 
+
+hasil_valid = 'uniform'
+interval_kelas = 24
+
+#================= END Global Variable ================
 
 # Create your views here.
 
@@ -517,7 +526,7 @@ def NaiveBayes(request):
         
         cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
         n_scores_1 = cross_val_score(Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
-        Train = n_scores_1.mean()
+        Train_score = n_scores_1.mean()
         
         Prediction = Logit_Model.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
@@ -600,8 +609,8 @@ def NaiveBayes(request):
 
         
         return render(request, 'administrator/NaiveBayes.html',{'Report': plot_report_nb, 
-                                                                'skor_acc':Val_Score*100,
-                                                                'skor_val':Train*100,
+                                                                'skor_acc':Train_score*100,
+                                                                'skor_val':Val_Score*100,
                                                                 'plot_div_conf_nb': plot_conf_nb })
 
     else:
@@ -638,7 +647,7 @@ def NaiveBayesAda(request):
         
         cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
         n_scores_1 = cross_val_score(boost_Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
-        Train = n_scores_1.mean()
+        Train_score = n_scores_1.mean()
         
         Prediction = boost_Logit_Model.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
@@ -719,8 +728,337 @@ def NaiveBayesAda(request):
 
         
         return render(request, 'administrator/NaiveBayesAda.html',{'Report': plot_report_nb, 
-                                                                'skor_acc':Val_Score*100,
-                                                                'skor_val':Train*100,
+                                                                'skor_acc':Train_score*100,
+                                                                'skor_val':Val_Score*100,
+                                                                'plot_div_conf_nb': plot_conf_nb })
+
+    else:
+        messages.error(request,'Dataset belum diinputkan!')
+        return redirect('/administrator/dataset/')
+        pass
+    
+    
+@login_required(login_url=settings.LOGIN_URL)
+def InfoGainR(request):
+    if default_storage.exists('dataset_encode.csv'):
+        #Target = pd.read_csv(default_storage.path('target.csv'))
+        dataset = pd.read_csv('./media/dataset_encode.csv')
+        X = dataset.iloc[:,:-1].values
+        y = dataset.iloc[:,-1].values
+        sc = StandardScaler()
+        X = sc.fit_transform(X)
+        
+        X_train , X_test , y_train , y_test   = train_test_split(X,y,test_size = 0.2 , random_state=420, shuffle=True)
+        
+        ig = SelectKBest(score_func=mutual_info_classif, k=24)
+        ig.fit_transform(X_train, y_train)
+        
+        data_column = dataset.columns.to_list()
+        #print(data)
+        data_column.remove("classification")
+        #for i,j in zip(data, ig.scores_):
+        #  print("{}: {}".format(i,j))
+        data_column = {"Fitur": data_column, 
+                "Skor": ig.scores_
+                }
+
+        data_export = pd.DataFrame(data_column)
+        
+        data_list = []
+        for x in range(len(data_export['Fitur'])):
+            temp = []
+            temp.append(data_export['Fitur'][x])
+            temp.append(data_export['Skor'][x])
+            
+            data_list.append(temp)
+        
+        #print(X_test)
+        #print(y_test)
+        #print(X_train.columns)
+        
+        
+        
+        return render(request, 'administrator/InfoGainR.html',{'data_IG': data_list})
+
+    else:
+        messages.error(request,'Dataset belum diinputkan!')
+        return redirect('/administrator/dataset/')
+        pass
+
+@login_required(login_url=settings.LOGIN_URL)
+def Diskritisasi(request):
+    
+    hasil = None
+    
+    if  request.method == 'POST':
+        
+        global interval_kelas
+       
+        hasil = request.POST.get('field', False)
+       
+       
+        interval_kelas = int(request.POST.get('n_bins', False))
+    
+    global hasil_valid    
+        
+    if hasil == 'Kmeans':
+        hasil_valid = 'kmeans'
+    elif hasil == 'Quantile':
+        hasil_valid = 'quantile'
+    else:
+        hasil_valid = 'uniform'
+        
+    print('n_bins =', interval_kelas)
+    print('hasil = ',hasil)
+    print('hasil_valid =', hasil_valid)
+       
+    
+    
+    if default_storage.exists('dataset_encode.csv'):
+        
+        #Target = pd.read_csv(default_storage.path('target.csv'))
+        dataset = pd.read_csv('./media/dataset_encode.csv')
+        X = dataset.iloc[:,:-1].values
+        y = dataset.iloc[:,-1].values
+        sc = StandardScaler()
+        X = sc.fit_transform(X)
+        
+        X_train , X_test , y_train , y_test   = train_test_split(X,y,test_size = 0.2 , random_state=420, shuffle=True)
+        
+        if hasil != None and interval_kelas != None:
+            discretization = KBinsDiscretizer(n_bins=interval_kelas, encode='ordinal', strategy=hasil_valid)
+        
+        else: 
+            discretization = KBinsDiscretizer(n_bins=24, encode='ordinal', strategy='uniform')
+            
+        data_disc = discretization.fit_transform(X_train)
+        
+        data_hist = pd.DataFrame(data_disc)
+        
+        #=========== Start Dataset histogran ===============
+        name_plot = ["Age", "Blood Presure", "Specific Gravity", "Albumin", "Sugar",
+                     "Red Blood Cells", "Pus Cell", "Pus Cell Clumps", "Bacteria",
+                     "Blood Glucose Random", "Blood Urea", "Serum Creatinine",
+                     "Sodium", "Potassium", "Haemoglobin", "Packed Cell Volume",
+                     "White Blood Cell Count", "Red Blood Cell Count", "Hypertension",
+                     "Diabetes Mellitus", "Coronary Artery Disease", "Appetite",
+                     "Pedal Edema", "Anemia"
+                     ]
+        #print(data[0])
+        plot_data_utama = make_subplots(rows=4, cols=6, subplot_titles=name_plot,) 
+        plot_data_utama.add_trace(go.Histogram(x=dataset['age'], name=name_plot[0]), col=1, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_pressure'], name=name_plot[1]), col=2, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['specific_gravity'], name=name_plot[2]), col=3, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['albumin'], name=name_plot[3]), col=4, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['sugar'], name=name_plot[4]), col=5, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['red_blood_cells'], name=name_plot[5]), col=6, row=1)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['pus_cell'], name=name_plot[6]), col=1, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['pus_cell_clumps'], name=name_plot[7]), col=2, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['bacteria'], name=name_plot[8]), col=3, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_glucose_random'], name=name_plot[9]), col=4, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_urea'], name=name_plot[10]), col=5, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['serum_creatinine'], name=name_plot[11]), col=6, row=2)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['sodium'], name=name_plot[12]), col=1, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['potassium'], name=name_plot[13]), col=2, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['haemoglobin'], name=name_plot[14]), col=3, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['packed_cell_volume'], name=name_plot[15]), col=4, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['white_blood_cell_count'], name=name_plot[16]), col=5, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['red_blood_cell_count'], name=name_plot[17]), col=6, row=3)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['hypertension'], name=name_plot[18]), col=1, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['diabetes_mellitus'], name=name_plot[19]), col=2, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['coronary_artery_disease'], name=name_plot[20]), col=3, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['appetite'], name=name_plot[21]), col=4, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['pedal_edema'], name=name_plot[22]), col=5, row=4)
+        plot_data_utama.add_trace(go.Histogram(x=dataset['anemia'], name=name_plot[23]), col=6, row=4)
+        
+        #FIG Update
+        plot_data_utama.update_layout(height=800, width=1248, title_text="Data Asli", title_font_size=20, title_x=0.5)
+        
+        #Fig Export
+        plot_data_div = plot(plot_data_utama, output_type='div')
+        
+        #=================== Start Dataset Discretization ======
+        
+        
+        fig_disc = make_subplots(rows=4, cols=6, subplot_titles=name_plot,) 
+
+        fig_disc.add_trace(go.Histogram(x=data_hist[0], name=name_plot[0]), col=1, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[1], name=name_plot[1]), col=2, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[2], name=name_plot[2]), col=3, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[3], name=name_plot[3]), col=4, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[4], name=name_plot[4]), col=5, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[5], name=name_plot[5]), col=6, row=1)
+        fig_disc.add_trace(go.Histogram(x=data_hist[6], name=name_plot[6]), col=1, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[7], name=name_plot[7]), col=2, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[8], name=name_plot[8]), col=3, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[9], name=name_plot[9]), col=4, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[10], name=name_plot[10]), col=5, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[11], name=name_plot[11]), col=6, row=2)
+        fig_disc.add_trace(go.Histogram(x=data_hist[12], name=name_plot[12]), col=1, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[13], name=name_plot[13]), col=2, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[14], name=name_plot[14]), col=3, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[15], name=name_plot[15]), col=4, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[16], name=name_plot[16]), col=5, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[17], name=name_plot[17]), col=6, row=3)
+        fig_disc.add_trace(go.Histogram(x=data_hist[18], name=name_plot[18]), col=1, row=4)
+        fig_disc.add_trace(go.Histogram(x=data_hist[19], name=name_plot[19]), col=2, row=4)
+        fig_disc.add_trace(go.Histogram(x=data_hist[20], name=name_plot[20]), col=3, row=4)
+        fig_disc.add_trace(go.Histogram(x=data_hist[21], name=name_plot[21]), col=4, row=4)
+        fig_disc.add_trace(go.Histogram(x=data_hist[22], name=name_plot[22]), col=5, row=4)
+        fig_disc.add_trace(go.Histogram(x=data_hist[23], name=name_plot[23]), col=6, row=4)
+        
+        fig_disc.update_layout(height=800, width=1248, 
+                               title_text="Data Terdiskritisasi Metode {} dan".format(hasil), 
+                               title_font_size=20, title_x=0.5)
+        
+        plot_data_disc_div = plot(fig_disc, output_type='div')
+        
+        return render(request, 'administrator/Diskritisasi.html',{ 'plot_div_dataset': plot_data_div,
+                                                                    'plot_div_data_disc': plot_data_disc_div,
+            
+                                                                })
+
+    else:
+        messages.error(request,'Dataset belum diinputkan!')
+        return redirect('/administrator/dataset/')
+        pass
+
+@login_required(login_url=settings.LOGIN_URL)
+def NB_Custom(request):
+    if default_storage.exists('dataset_encode.csv'):
+        #Target = pd.read_csv(default_storage.path('target.csv'))
+        dataset = pd.read_csv('./media/dataset_encode.csv')
+        X = dataset.iloc[:,:-1].values
+        y = dataset.iloc[:,-1].values
+        sc = StandardScaler()
+        X = sc.fit_transform(X)
+        
+        X_train , X_test , y_train , y_test   = train_test_split(X,y,test_size = 0.2 , random_state=420, shuffle=True)
+        
+        #print(X_test)
+        #print(y_test)
+        #print(X_train.columns)
+        ig = SelectKBest(score_func=mutual_info_classif, k='all')
+        X_new_train = ig.fit_transform(X_train, y_train)
+        
+        print(interval_kelas)
+        print(hasil_valid)
+        
+        if interval_kelas != None and hasil_valid != None:
+        
+            discretization = KBinsDiscretizer(n_bins=interval_kelas, encode='ordinal', strategy=hasil_valid)
+            discretization.fit_transform(X_new_train)
+        
+        else:
+            discretization = KBinsDiscretizer(n_bins=100, encode='ordinal', strategy='uniform')
+            discretization.fit_transform(X_new_train)
+        
+        
+        Logit_Model = naive_bayes.GaussianNB()
+        Logit_Model.fit(X_new_train, y_train)
+        
+        boost_Logit_Model = AdaBoostClassifier(base_estimator=Logit_Model,
+                                               n_estimators=50,
+                                               learning_rate=0.05,
+                                               algorithm='SAMME.R',
+                                               random_state=1
+                                               )
+        
+        boost_Logit_Model.fit(X_new_train, y_train)
+        pipe = Pipeline([
+                        ('discretization', discretization),
+                        ('boost_Logit_Model', boost_Logit_Model)
+                        ])
+        
+        pipe.fit(X_new_train, y_train)
+        
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        n_scores_1 = cross_val_score(pipe, X_new_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
+        Train_Score = n_scores_1.mean()
+        
+        Prediction = pipe.predict(X_test)
+        Val_Score = accuracy_score(y_test,Prediction)
+        Report = classification_report(y_test,Prediction)
+
+        print(Prediction)
+        print("Accuracy Score: {}%".format(Val_Score*100))
+        print(Report)
+        print(interval_kelas)
+        print(hasil_valid)
+        
+        labels=['NonCKD', 'CKD']
+        preds = np.array(pipe.predict(X_test))
+        #preds2 = Logit_Model.score(X_test, y_test)
+        #preds = np.argmax(preds, axis = -1)
+        orig = y_test
+        conf = confusion_matrix(orig, preds)
+        
+        fig = ff.create_annotated_heatmap(conf, colorscale='blues', x=labels, y=labels)
+        fig.update_yaxes(autorange="reversed")
+        fig.update_layout(
+                        xaxis_title="Predicted",
+                        yaxis_title="Truth",
+                        xaxis = dict(
+                                        tickmode = 'array',
+                                        tickvals = [0,1],
+                                        ticktext = labels
+                                    ),
+                        yaxis = dict(
+                                        tickmode = 'array',
+                                        tickvals = [0,1],
+                                        ticktext = labels
+                                    ),
+                        autosize = False,
+                        width = 600,
+                        height = 600,
+                        )
+                        
+        fig.update_xaxes(side="top")
+        plot_conf_nb = plot(fig, output_type='div')
+        
+        csv_report_nb = pd.DataFrame(classification_report(orig,
+                                                    preds,
+                                                    output_dict=True,
+                                                    
+                                                    )
+                                    )
+        
+        csv_report_nb = csv_report_nb.iloc[:-1, :].T
+        csv_report_nb = csv_report_nb.round(3)
+        #print(csv_report_nb)
+        
+        
+        z_data = csv_report_nb.values.tolist()
+        x_data = csv_report_nb.columns.to_list()
+        y_data = csv_report_nb.index.tolist()
+
+        y_data[0] = 'NonCKD'
+        y_data[1] = 'CKD'
+
+
+        fig_report = ff.create_annotated_heatmap(z_data, x_data, y_data, colorscale='blues', )
+                                      
+        
+
+        fig_report.update_yaxes(autorange="reversed")
+        fig_report.update_layout(title="Classification Report",
+                        #xaxis_title="x Axis Title",
+                        #yaxis_title="y Axis Title",
+                        autosize = False,
+                        width = 600,
+                        height = 400,                  
+                        )
+        
+        for i in range(len(fig_report.layout.annotations)):
+                fig_report.layout.annotations[i].font.size = 15
+                        
+        fig_report.update_yaxes(categoryorder='category ascending')
+        plot_report_nb = plot(fig_report, output_type='div')
+
+        
+        return render(request, 'administrator/NB_Custom.html',{'Report': plot_report_nb, 
+                                                                'skor_acc':Train_Score*100,
+                                                                'skor_val':Val_Score*100,
                                                                 'plot_div_conf_nb': plot_conf_nb })
 
     else:

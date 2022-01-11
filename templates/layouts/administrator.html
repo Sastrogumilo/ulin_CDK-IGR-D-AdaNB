@@ -267,14 +267,36 @@
                                         </a>
                                     </li>
                                     <!--Menu list item-->
-                                    <li class="{% block NaiveBayes_Algen %} {% endblock %}">
-                                        <a href="{% url 'administrator:NaiveBayes_Algen' %}">
-                                            <i class="demo-psi-bar-chart"></i>
-                                            <span class="menu-title">
-                                                Klasifikasi NB + Optimasi
-                                            </span>
-                                        </a>
-                                    </li>
+                                   
+
+                                        <li class="{% block InfoGainR %} {% endblock %}">
+                                            <a href="{% url 'administrator:InfoGainR' %}">
+                                                <i class="demo-pli-checked-user"></i>
+                                                <span class="menu-title">
+                                                    Information Gain Ratio
+                                                </span>
+                                            </a>
+                                        </li>
+
+                                        <li class="{% block Diskritisasi %} {% endblock %}">
+                                            <a href="{% url 'administrator:Diskritisasi' %}">
+                                                <i class="demo-pli-magnifi-glass"></i>
+                                                <span class="menu-title">
+                                                    Discretization
+                                                </span>
+                                            </a>
+                                        </li>
+
+                                        <li class="{% block NB_Custom %} {% endblock %}">
+                                            <a href="{% url 'administrator:NB_Custom' %}">
+                                                <i class="demo-pli-medal-2"></i>
+                                                <span class="menu-title">
+                                                    NB Custom Optimizer
+                                                </span>
+                                            </a>
+                                        </li>
+
+
                                     
                                     <!--Menu list item-->
                                     <li class="{% block tentang %} {% endblock %}">

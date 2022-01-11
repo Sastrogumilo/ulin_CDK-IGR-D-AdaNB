@@ -12,10 +12,11 @@ urlpatterns = [
     #path('klasifikasi/', views.klasifikasi, name='klasifikasi'),
     path('NaiveBayes/', views.NaiveBayes, name='NaiveBayes'),
     path('NaiveBayesAda/', views.NaiveBayesAda, name='NaiveBayesAda'),
-    path('NaiveBayes_Algen/', views.NaiveBayes_Algen, name='NaiveBayes_Algen'),
+    path('InfoGainR/', views.InfoGainR, name='InfoGainR'),
+    path('Diskritisasi/', views.Diskritisasi, name='Diskritisasi'),
+    path('NB_Custom/', views.NB_Custom, name='NB_Custom'),
     path('hasil_nb_algen/', views.hasil_nb_algen, name='hasil_nb_algen'),
     #path('hasilsvmrbf/', views.hasilsvmrbf, name='hasilsvmrbf'),
     #path('SVMRBFIG/', views.SVMRBFIG, name='SVMRBFIG'),
-
 
 ]
