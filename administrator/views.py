@@ -1112,6 +1112,10 @@ def Rangkuman(request):
         
         return render(request, 'administrator/Rangkuman_kosong.html',{})
     
+    elif Hasil_AdaNB_pred == None:
+        return render(request, 'administrator/Rangkuman_kosong.html',{})
+    elif  Hasil_NB_pred == None:
+        return render(request, 'administrator/Rangkuman_kosong.html',{})
     else:
         hasil_nb_score = Hasil_NB_score
         hasil_nb_pred = Hasil_NB_pred
