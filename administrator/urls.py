@@ -4,7 +4,7 @@ from . import views
 app_name = 'administrator'
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.index, name='dashboard'),
     path('dataset/', views.dataset, name='dataset'),
     path('tentang/', views.tentang, name='tentang'),
     path('EDA/', views.EDA, name='EDA'),

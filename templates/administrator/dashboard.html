@@ -25,7 +25,8 @@ Dashboard | Klasifikasi Cronic Kidney Disease
   }
 </style>
       <div id="img-weli"><img src="/assets/img/weli.png" alt="" title="" name="slide" class="img-weli"></div>
-<h3>Peningkatan Akurasi Algoritma Naive Bayes Berbasis AdaBoost Untuk Klasifikasi Chronic Kidney Disease Dengan Menerapkan Discretization dan Information Gain Ratio</h3>
+<h3>Peningkatan Akurasi Algoritma Naive Bayes Berbasis AdaBoost Untuk Klasifikasi <em>Chronic Kidney Disease</em> 
+  Dengan Menerapkan <em>Discretization</em> dan <em>Information Gain Ratio</em></h3>
 
 </div>
         </div>
@@ -43,18 +44,24 @@ Dashboard | Klasifikasi Cronic Kidney Disease
                 <i class="demo-pli-information"></i>
                     Petunjuk Penggunaan</h4>
                 <div id="demo-gen-faq1" class="mar-ver collapse in">
-                1. Siapkan dataset dengan format .csv yang terdiri dari 17 kolom dengan nama "Gender", "Nationality", "PlaceofBirth", "StageID", "GradeID", "SectionID", "Topic", 
-                "Semester", "Relation", "Raisedhand", "VisitedResources", "AnnouncementsView", "Discussion", "ParentAnsweringSurvey", "ParentSchoolSatisfaction",
-                "StudentAbsenceDays", dan "Class", atau dapat di download pada link berikut <a href=""> ini </a></br>
-                2. Pilih menu Dataset untuk import data review yang akan digunakan atau untuk mengganti dataset baru</br>
-                3. Pilih menu EDA untuk mengetahui isi data dataset secara visual, hal ini akan mempermudah dalam menemukan pola yang terkandung dalam dataset
+                1. Siapkan dataset dengan format .csv atau .arff yang dapat di download di <a href="https://archive-beta.ics.uci.edu/ml/datasets/chronic+kidney+disease">UCI</a>  
+                atau di <a href="https://www.kaggle.com/mansoordaku/ckdisease"> Kaggle </a>.</br>
+                2. Pilih menu Dataset untuk import data yang akan digunakan atau untuk mengganti dataset baru</br>
+                3. Pilih menu preproses data untuk menambal data yang memiliki nilai '?' dengan metode <em>mean averange</em>.</br>
+                4. Pilih menu EDA untuk mengetahui isi data dataset secara visual, hal ini akan mempermudah dalam menemukan informasi didalam dataset
                 </br>
-                4. Lakukan <em>Encoding Data</em> dengan memilih tombol "<em>Encoding Data</em>" pada halaman EDA atau pada menu bar disamping</br>
-                5. Lakukan pengujian klasifikasi Naive Bayes menu "Klasifikasi Naive Bayes"</br>
-                6. Hasil akurasi & confusion matrix akan ditampilkan untuk algoritma Naive Bayes</br>
-                7. Lakukan pengujian klasifikasi dengan algoritma Naive Bayes dengan Algoritma Genetika pada menu "Klasifikasi NB + Al Gen"</br>
-                8. Masukkan nilai jumlah fitur, jumlah populasi, crossover, mutasi, jumlah generasi, dan jumlah generasi yang tidak berubah kemudian klik "Process"</br>
-                9. Hasil akurasi, confusion matrix, dan fitur yang terpilih akan ditampilkan</br>
+                5. Lakukan pengujian klasifikasi Naive Bayes menu "Klasifikasi Naive Bayes" dan "Klasifikasi NB + AdaBoost"</br>
+                6. Hasil akurasi & confusion matrix akan ditampilkan untuk setiap metode klasifikasi</br>
+                7. Pilih menu Information Gain Ratio untuk mendapatkan rasio nilai ketergantungan antar variabel, nilai variabel bisa menjadi 0 
+                jika dan hanya jika terdapat 2 variabel random yang independen. Semakin tinggi nilainya semakin tinggi pula nilai ketergantungannya.
+                Hasil dari bagian Information Gain Ratio akan disimpan dan kemudian dibawa ke dalam bagian yang selanjutnya.</br>
+                8. Pilih menu Discretization untuk mendapatkan hasil terdiskritisasi dataset, masukan pula jumlah interval kelas dan strategi
+                yang digunakan, hasil dari bagian Discretization akan dibawa kebagian selanjutnya untuk dipergunakan meningkatkan akurasi klasifikasi.</br>
+                9. Lakukan pengujian klasifikasi dengan algoritma Naive Bayes + AdaBoost + IGR + Discretization pada menu  "Klasifikasi NB Custom Optimizer"</br>
+                10. Hasil akurasi, confusion matrix, dan fitur yang terpilih akan ditampilkan</br>
+                11. Hasil rangkuman klasifikasi yang telah dilaksanakan dapat dilihat dalam menu Rangkuman. Apabila salah satu 
+                klasifikasi belum terlaksana maka menu Rangkuman tidak dapat di akses. </br>
+                <br></br>
             </div>
             </div>
           </div>
