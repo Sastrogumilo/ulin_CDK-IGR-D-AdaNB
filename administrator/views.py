@@ -533,7 +533,7 @@ def NaiveBayes(request):
         Logit_Model = naive_bayes.GaussianNB()
         Logit_Model.fit(X_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
         n_scores_1 = cross_val_score(Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_score = n_scores_1.mean()
         
@@ -663,7 +663,7 @@ def NaiveBayesAda(request):
         
         boost_Logit_Model.fit(X_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
         n_scores_1 = cross_val_score(boost_Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_score = n_scores_1.mean()
         
@@ -934,8 +934,29 @@ def Diskritisasi(request):
         
         plot_data_disc_div = plot(fig_disc, output_type='div')
         
+        
+        dfc = data_hist.corr()
+        z = dfc.values.tolist()
+        z_text = [[str(round(y,1)) for y in x] for x in z]
+        
+        plot_correlation = ff.create_annotated_heatmap(
+                z=z,
+                x=list(name_plot),
+                y=list(name_plot),
+                zmax=1, zmin=-1,
+                annotation_text=z_text, colorscale='agsunset',
+                showscale=True,
+                hoverongaps=True
+            )
+
+        plot_correlation.update_layout(title_text='Discretization Correlation matrix', height=800, width=1096, title_x=0.5, title_y=1, title_font_size=20)
+
+        plot_correlation_div = plot(plot_correlation, output_type='div')
+        
+        
         return render(request, 'administrator/Diskritisasi.html',{ 'plot_div_dataset': plot_data_div,
                                                                     'plot_div_data_disc': plot_data_disc_div,
+                                                                    'plot_div_corr': plot_correlation_div,
             
                                                                 })
 
@@ -999,7 +1020,7 @@ def NB_Custom(request):
         
         pipe.fit(X_new_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
         n_scores_1 = cross_val_score(pipe, X_new_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_Score = n_scores_1.mean()
         
@@ -1169,112 +1190,3 @@ def Rangkuman(request):
                                                                 'fig_report_div': fig_Report
                                                                 
                                                                 })
-
-
-@login_required(login_url=settings.LOGIN_URL)
-def hasil_nb_algen(request):
-    if request.method == 'GET':
-        jumlah_fitur = int(request.GET['jumlah_fitur'])
-        jumlah_populasi = int(request.GET['jumlah_populasi'])
-        crossover = float(request.GET['crossover'])
-        mutasi = float(request.GET['mutasi'])
-        jumlah_generasi = int(request.GET['jumlah_generasi'])
-        jumlah_gen_no_change = int(request.GET['jumlah_gen_no_change'])
-        
-        rkf = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69420213)
-        
-        estimator = naive_bayes.GaussianNB()
-        
-        Target = pd.read_csv(default_storage.path('target.csv'))
-        Features = pd.read_csv(default_storage.path('fitur.csv'))
-        X_train, X_test, y_train, y_test = train_test_split(Features, Target, test_size=0.3, random_state=52)
-        
-        selector = []
-        
-        selector = selector.fit(X_train,y_train)
-        
-        genfeats = X_train.columns[selector.support_]
-        genfeats = list(genfeats)
-        
-        y_pred = selector.predict(X_test)
-        
-        val_akurasi = accuracy_score(y_test,y_pred)
-        
-        train_akurasi = selector.generation_scores_[-1]
-        
-        labels=['High', 'Low', 'Mid']
-        preds = np.array(selector.predict(X_test))
-        #preds2 = Logit_Model.score(X_test, y_test)
-        #preds = np.argmax(preds, axis = -1)
-        orig = y_test
-        conf = confusion_matrix(orig, preds)
-        
-        fig = ff.create_annotated_heatmap(conf, colorscale='blues', x=labels, y=labels)
-        fig.update_yaxes(autorange="reversed")
-        fig.update_layout(
-                        xaxis_title="Predicted",
-                        yaxis_title="Truth",
-                        xaxis = dict(
-                                        tickmode = 'array',
-                                        tickvals = [0,1,2],
-                                        ticktext = labels
-                                    ),
-                        yaxis = dict(
-                                        tickmode = 'array',
-                                        tickvals = [0,1,2],
-                                        ticktext = labels
-                                    ),
-                        autosize = False,
-                        width = 600,
-                        height = 600,
-                        )
-                        
-        fig.update_xaxes(side="top")
-        plot_conf_nb_algen = plot(fig, output_type='div')
-        
-        csv_report_nb = pd.DataFrame(classification_report(orig,
-                                                    preds,
-                                                    output_dict=True,
-                                                    
-                                                    )
-                                    )
-        
-        csv_report_nb = csv_report_nb.iloc[:-1, :].T
-        csv_report_nb = csv_report_nb.round(3)
-        
-        z = csv_report_nb.values.tolist()
-        x = csv_report_nb.columns.to_list()
-        y = csv_report_nb.index.tolist()
-
-
-        fig_report = ff.create_annotated_heatmap(z, x=x, y=y, colorscale='blues', 
-                                        #x=['High', 'Low', 'Mid'], y=['High', 'Low', 'Mid']
-                                        )
-
-        #fig.update_yaxes(autorange="reversed")
-        fig_report.update_layout(title="Plot Title",
-                        #xaxis_title="x Axis Title",
-                        #yaxis_title="y Axis Title",
-                        autosize = False,
-                        width = 700,
-                        height = 700,                  
-                        )
-        
-        for i in range(len(fig_report.layout.annotations)):
-                fig_report.layout.annotations[i].font.size = 15
-                        
-        fig_report.update_yaxes(categoryorder='category descending')
-        plot_report_nb_algen = plot(fig_report, output_type='div')
-        
-
-        return render(request, 'administrator/hasil_nb_algen.html',{'fitur_terpilih':genfeats, 
-                                                                 'val_akurasi': val_akurasi, 
-                                                                 'train_akurasi': train_akurasi,
-                                                                 'plot_div_conf_nb_algen': plot_conf_nb_algen,
-                                                                 'plot_div_report_nb_algen': plot_report_nb_algen,
-                                                                 })
-
-    else:
-        messages.error(request,'Dataset belum diinputkan!')
-        return redirect('/administrator/dataset/')
-        pass
