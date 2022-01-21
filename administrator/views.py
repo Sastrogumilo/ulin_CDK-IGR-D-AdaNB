@@ -47,10 +47,11 @@ import time
 import numpy as np
 
 from .arff_convert import arff_convert
+from .helper import datatableConverter, datatableConverter2
 
 #================== Global Variable ====================
 
-header = ['age','bp','sg','al','su','rbc','pc','pcc',
+header = ['id','age','bp','sg','al','su','rbc','pc','pcc',
     'ba','bgr','bu','sc','sod','pot','hemo','pcv',
     'wbcc','rbcc','htn','dm','cad','appet','pe','ane',
     'classification']
@@ -123,6 +124,7 @@ def dataset(request):
         
         for x in range(len(data['age'])):
             temp = []
+            temp.append(data['id'][x])
             temp.append(data['age'][x])
             temp.append(data['bp'][x])
             temp.append(data['sg'][x])
@@ -162,6 +164,7 @@ def dataset(request):
        
         for x in range(len(data['age'])):
             temp = []
+            temp.append(data['id'][x])
             temp.append(data['age'][x])
             temp.append(data['bp'][x])
             temp.append(data['sg'][x])
@@ -397,7 +400,11 @@ def EDA(request):
 def preproses(request):
     if default_storage.exists('dataset.csv'):
         
-        CKD_dataset = pd.read_csv("./media/dataset.csv", header=0, na_values="?")
+        
+        data_raw = pd.read_csv("./media/dataset.csv", header=0,)
+        datatable_raw = datatableConverter(data_raw)
+        
+        CKD_dataset1 = pd.read_csv("./media/dataset.csv", header=0,)
         cols_names = {"bp": "blood_pressure",
                     "sg": "specific_gravity",
                     "al": "albumin",
@@ -422,28 +429,32 @@ def preproses(request):
                     "pe": "pedal_edema",
                     "ane": "anemia"}
 
-        CKD_dataset.rename(columns=cols_names, inplace=True)
+        CKD_dataset1.rename(columns=cols_names, inplace=True)
         print(f"\nSudah ...")
 
         # Change to Numerical Dtyp
-        CKD_dataset['red_blood_cell_count'] = pd.to_numeric(CKD_dataset['red_blood_cell_count'], errors='coerce')
-        CKD_dataset['packed_cell_volume'] = pd.to_numeric(CKD_dataset['packed_cell_volume'], errors='coerce')
-        CKD_dataset['white_blood_cell_count'] = pd.to_numeric(CKD_dataset['white_blood_cell_count'], errors='coerce')
+        CKD_dataset1['red_blood_cell_count'] = pd.to_numeric(CKD_dataset1['red_blood_cell_count'], errors='coerce')
+        CKD_dataset1['packed_cell_volume'] = pd.to_numeric(CKD_dataset1['packed_cell_volume'], errors='coerce')
+        CKD_dataset1['white_blood_cell_count'] = pd.to_numeric(CKD_dataset1['white_blood_cell_count'], errors='coerce')
 
         # Drop id Column as it is seems to be an unique identifier for each row
-        CKD_dataset.drop(["id"], axis=1, inplace=True)
+        CKD_dataset1.drop(["id"], axis=1, inplace=True)
 
+        
+        
         # Checking missing values
-        CKD_dataset.isnull().sum().sort_values(ascending=False)
+        
+        
 
         # Replace incorrect values
-        CKD_dataset['diabetes_mellitus'] = CKD_dataset['diabetes_mellitus'].replace(
+        CKD_dataset1['diabetes_mellitus'] = CKD_dataset1['diabetes_mellitus'].replace(
             to_replace={'\tno': 'no', '\tyes': 'yes', ' yes': 'yes'})
-        CKD_dataset['coronary_artery_disease'] = CKD_dataset['coronary_artery_disease'].replace(to_replace='\tno', value='no')
-        CKD_dataset['classification'] = CKD_dataset['classification'].replace(to_replace='ckd\t', value='ckd')
-
+        CKD_dataset1['coronary_artery_disease'] = CKD_dataset1['coronary_artery_disease'].replace(to_replace='\tno', value='no')
+        CKD_dataset1['classification'] = CKD_dataset1['classification'].replace(to_replace='ckd\t', value='ckd')
+        
+        
         # Convert nominal values to binary values
-        CKD_dataset.replace("?", np.NaN, inplace=True)
+        
         conv_value = {"red_blood_cells": {"normal": 1, "abnormal": 0},
                     "pus_cell": {"normal": 1, "abnormal": 0},
                     "pus_cell_clumps": {"present": 1, "notpresent": 0},
@@ -455,46 +466,86 @@ def preproses(request):
                     "pedal_edema": {"yes": 1, "no": 0},
                     "anemia": {"yes": 1, "no": 0},
                     "classification": {"ckd": 1, "notckd": 0}}
-        CKD_dataset.replace(conv_value, inplace=True)
+        CKD_dataset1.replace(conv_value, inplace=True)
+        
+        CKD_dataset1.to_csv("./media/dataset_encode_kardinal.csv", sep=',', index=False)
+        data_kardinal = pd.read_csv("./media/dataset_encode_kardinal.csv")
+        datatable_kardinal = datatableConverter2(data_kardinal)
+        
+        
+        #Nan Values
+        
+        CKD_dataset2 = pd.read_csv("./media/dataset.csv", header=0, na_values="?")
+        cols_names = {"bp": "blood_pressure",
+                    "sg": "specific_gravity",
+                    "al": "albumin",
+                    "su": "sugar",
+                    "rbc": "red_blood_cells",
+                    "pc": "pus_cell",
+                    "pcc": "pus_cell_clumps",
+                    "ba": "bacteria",
+                    "bgr": "blood_glucose_random",
+                    "bu": "blood_urea",
+                    "sc": "serum_creatinine",
+                    "sod": "sodium",
+                    "pot": "potassium",
+                    "hemo": "haemoglobin",
+                    "pcv": "packed_cell_volume",
+                    "wc": "white_blood_cell_count",
+                    "rc": "red_blood_cell_count",
+                    "htn": "hypertension",
+                    "dm": "diabetes_mellitus",
+                    "cad": "coronary_artery_disease",
+                    "appet": "appetite",
+                    "pe": "pedal_edema",
+                    "ane": "anemia"}
 
+        CKD_dataset2.rename(columns=cols_names, inplace=True)
+        print(f"\nSudah ...")
+
+        # Change to Numerical Dtyp
+        CKD_dataset2['red_blood_cell_count'] = pd.to_numeric(CKD_dataset2['red_blood_cell_count'], errors='coerce')
+        CKD_dataset2['packed_cell_volume'] = pd.to_numeric(CKD_dataset2['packed_cell_volume'], errors='coerce')
+        CKD_dataset2['white_blood_cell_count'] = pd.to_numeric(CKD_dataset2['white_blood_cell_count'], errors='coerce')
+
+        # Drop id Column as it is seems to be an unique identifier for each row
+        CKD_dataset2.drop(["id"], axis=1, inplace=True)
+        
+        
+        # Replace incorrect values
+        CKD_dataset2['diabetes_mellitus'] = CKD_dataset2['diabetes_mellitus'].replace(
+            to_replace={'\tno': 'no', '\tyes': 'yes', ' yes': 'yes'})
+        CKD_dataset2['coronary_artery_disease'] = CKD_dataset2['coronary_artery_disease'].replace(to_replace='\tno', value='no')
+        CKD_dataset2['classification'] = CKD_dataset2['classification'].replace(to_replace='ckd\t', value='ckd')
+        
+        
+        # Convert nominal values to binary values
+        
+        conv_value = {"red_blood_cells": {"normal": 1, "abnormal": 0},
+                    "pus_cell": {"normal": 1, "abnormal": 0},
+                    "pus_cell_clumps": {"present": 1, "notpresent": 0},
+                    "bacteria": {"present": 1, "notpresent": 0},
+                    "hypertension": {"yes": 1, "no": 0},
+                    "diabetes_mellitus": {"yes": 1, "no": 0},
+                    "coronary_artery_disease": {"yes": 1, "no": 0},
+                    "appetite": {"good": 1, "poor": 0},
+                    "pedal_edema": {"yes": 1, "no": 0},
+                    "anemia": {"yes": 1, "no": 0},
+                    "classification": {"ckd": 1, "notckd": 0}}
+        CKD_dataset2.replace(conv_value, inplace=True)
+
+
+
+        CKD_dataset2.isnull().sum().sort_values(ascending=False)
+        CKD_dataset2.replace("?", np.NaN, inplace=True)
         # Fill null values with mean value of the respective column
-        CKD_dataset.fillna(round(CKD_dataset.mean(), 2), inplace=True)
+        CKD_dataset2.fillna(round(CKD_dataset2.mean(), 2), inplace=True)
 
         # Save the final data cleaning
-        CKD_dataset.to_csv("./media/dataset_encode.csv", sep=',', index=False)
+        CKD_dataset2.to_csv("./media/dataset_encode.csv", sep=',', index=False)
         
-        data_fitur = []
-        data = pd.read_csv(default_storage.path('dataset_encode.csv'))
-        for x in range(len(data['age'])):
-            temp = []
-            temp.append(data['age'][x])
-            temp.append(data['blood_pressure'][x])
-            temp.append(data['specific_gravity'][x])
-            temp.append(data['albumin'][x])
-            temp.append(data['sugar'][x])
-            temp.append(data['red_blood_cells'][x])
-            temp.append(data['pus_cell'][x])
-            temp.append(data['pus_cell_clumps'][x])
-            temp.append(data['bacteria'][x])
-            temp.append(data['blood_glucose_random'][x])
-            temp.append(data['blood_urea'][x])
-            temp.append(data['serum_creatinine'][x])
-            temp.append(data['sodium'][x])
-            temp.append(data['potassium'][x])
-            temp.append(data['haemoglobin'][x])
-            temp.append(data['packed_cell_volume'][x])
-            temp.append(data['white_blood_cell_count'][x])
-            temp.append(data['red_blood_cell_count'][x])
-            temp.append(data['hypertension'][x])
-            temp.append(data['diabetes_mellitus'][x])
-            temp.append(data['coronary_artery_disease'][x])
-            temp.append(data['appetite'][x])
-            temp.append(data['pedal_edema'][x])
-            temp.append(data['anemia'][x])
-            #temp.append(data['classification'][x])
-            
-            # print(data['sentiment'][x])
-            data_fitur.append(temp)
+        datatable = pd.read_csv("./media/dataset_encode.csv")
+        data_fitur = datatableConverter2(datatable)
             
         data_target = []
         target = pd.read_csv(default_storage.path('dataset_encode.csv'))
@@ -503,7 +554,13 @@ def preproses(request):
             temp.append(target['classification'][x])
             data_target.append(temp)
             
-        return render(request, 'administrator/preproses.html',{'DataFitur': data_fitur, 'DataTarget': data_target})
+        return render(request, 'administrator/preproses.html',{
+                                                                'DataFitur': data_fitur, 
+                                                                'DataTarget': data_target,
+                                                                'DataKardinal': datatable_kardinal,
+                                                                'DataRaw': datatable_raw
+                                                                
+                                                                })
     else:
         messages.error(request, 'Dataset belum diinputkan!')
         return redirect('/administrator/dataset/')
@@ -533,7 +590,7 @@ def NaiveBayes(request):
         Logit_Model = naive_bayes.GaussianNB()
         Logit_Model.fit(X_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
         n_scores_1 = cross_val_score(Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_score = n_scores_1.mean()
         
@@ -663,7 +720,7 @@ def NaiveBayesAda(request):
         
         boost_Logit_Model.fit(X_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
         n_scores_1 = cross_val_score(boost_Logit_Model, X_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_score = n_scores_1.mean()
         
@@ -1007,7 +1064,7 @@ def NB_Custom(request):
         
         boost_Logit_Model = AdaBoostClassifier(base_estimator=Logit_Model,
                                                n_estimators=50,
-                                               learning_rate=0.05,
+                                               learning_rate=0.5,
                                                algorithm='SAMME.R',
                                                random_state=1
                                                )
@@ -1020,14 +1077,14 @@ def NB_Custom(request):
         
         pipe.fit(X_new_train, y_train)
         
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=1, random_state=69696969)
+        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=69696969)
         n_scores_1 = cross_val_score(pipe, X_new_train, y_train, scoring='accuracy', cv=cv, n_jobs=-1, error_score='raise')
         Train_Score = n_scores_1.mean()
         
         Prediction = pipe.predict(X_test)
         Val_Score = accuracy_score(y_test,Prediction)
         Report = classification_report(y_test,Prediction)
-        
+            
         Hasil_NB_Custom_pred = Val_Score
         Hasil_NB_Custom_score = n_scores_1
 
