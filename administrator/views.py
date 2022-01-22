@@ -13,6 +13,7 @@ from operator import itemgetter
 import zipfile
 import os
 from shutil import copyfile
+from git import head
 
 #Plotly
 import plotly.express as px
@@ -47,7 +48,7 @@ import time
 import numpy as np
 
 from .arff_convert import arff_convert
-from .helper import datatableConverter, datatableConverter2
+from .helper import *
 
 #================== Global Variable ====================
 
@@ -923,98 +924,19 @@ def Diskritisasi(request):
                      "Pedal Edema", "Anemia"
                      ]
         #print(data[0])
-        plot_data_utama = make_subplots(rows=4, cols=6, subplot_titles=name_plot,) 
-        plot_data_utama.add_trace(go.Histogram(x=dataset['age'], name=name_plot[0]), col=1, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_pressure'], name=name_plot[1]), col=2, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['specific_gravity'], name=name_plot[2]), col=3, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['albumin'], name=name_plot[3]), col=4, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['sugar'], name=name_plot[4]), col=5, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['red_blood_cells'], name=name_plot[5]), col=6, row=1)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['pus_cell'], name=name_plot[6]), col=1, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['pus_cell_clumps'], name=name_plot[7]), col=2, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['bacteria'], name=name_plot[8]), col=3, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_glucose_random'], name=name_plot[9]), col=4, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['blood_urea'], name=name_plot[10]), col=5, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['serum_creatinine'], name=name_plot[11]), col=6, row=2)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['sodium'], name=name_plot[12]), col=1, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['potassium'], name=name_plot[13]), col=2, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['haemoglobin'], name=name_plot[14]), col=3, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['packed_cell_volume'], name=name_plot[15]), col=4, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['white_blood_cell_count'], name=name_plot[16]), col=5, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['red_blood_cell_count'], name=name_plot[17]), col=6, row=3)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['hypertension'], name=name_plot[18]), col=1, row=4)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['diabetes_mellitus'], name=name_plot[19]), col=2, row=4)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['coronary_artery_disease'], name=name_plot[20]), col=3, row=4)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['appetite'], name=name_plot[21]), col=4, row=4)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['pedal_edema'], name=name_plot[22]), col=5, row=4)
-        plot_data_utama.add_trace(go.Histogram(x=dataset['anemia'], name=name_plot[23]), col=6, row=4)
         
-        #FIG Update
-        plot_data_utama.update_layout(height=800, width=1248, title_text="Data Asli", title_font_size=20, title_x=0.5)
+        #print(data_hist)
         
-        #Fig Export
-        plot_data_div = plot(plot_data_utama, output_type='div')
+        data_hist.to_csv("./media/hasil_diskritisasi.csv")
         
-        #=================== Start Dataset Discretization ======
+        data = pd.read_csv("./media/hasil_diskritisasi.csv", )
         
+        data_diskrit = datatableConverter3(data)
         
-        fig_disc = make_subplots(rows=4, cols=6, subplot_titles=name_plot,) 
-
-        fig_disc.add_trace(go.Histogram(x=data_hist[0], name=name_plot[0]), col=1, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[1], name=name_plot[1]), col=2, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[2], name=name_plot[2]), col=3, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[3], name=name_plot[3]), col=4, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[4], name=name_plot[4]), col=5, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[5], name=name_plot[5]), col=6, row=1)
-        fig_disc.add_trace(go.Histogram(x=data_hist[6], name=name_plot[6]), col=1, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[7], name=name_plot[7]), col=2, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[8], name=name_plot[8]), col=3, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[9], name=name_plot[9]), col=4, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[10], name=name_plot[10]), col=5, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[11], name=name_plot[11]), col=6, row=2)
-        fig_disc.add_trace(go.Histogram(x=data_hist[12], name=name_plot[12]), col=1, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[13], name=name_plot[13]), col=2, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[14], name=name_plot[14]), col=3, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[15], name=name_plot[15]), col=4, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[16], name=name_plot[16]), col=5, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[17], name=name_plot[17]), col=6, row=3)
-        fig_disc.add_trace(go.Histogram(x=data_hist[18], name=name_plot[18]), col=1, row=4)
-        fig_disc.add_trace(go.Histogram(x=data_hist[19], name=name_plot[19]), col=2, row=4)
-        fig_disc.add_trace(go.Histogram(x=data_hist[20], name=name_plot[20]), col=3, row=4)
-        fig_disc.add_trace(go.Histogram(x=data_hist[21], name=name_plot[21]), col=4, row=4)
-        fig_disc.add_trace(go.Histogram(x=data_hist[22], name=name_plot[22]), col=5, row=4)
-        fig_disc.add_trace(go.Histogram(x=data_hist[23], name=name_plot[23]), col=6, row=4)
+        #print(data_diskrit)
         
-        fig_disc.update_layout(height=800, width=1248, 
-                               title_text="Data Terdiskritisasi Metode {} dengan {} interval kelas".format(hasil, interval_kelas), 
-                               title_font_size=20, title_x=0.5)
-        
-        plot_data_disc_div = plot(fig_disc, output_type='div')
-        
-        
-        dfc = data_hist.corr()
-        z = dfc.values.tolist()
-        z_text = [[str(round(y,1)) for y in x] for x in z]
-        
-        plot_correlation = ff.create_annotated_heatmap(
-                z=z,
-                x=list(name_plot),
-                y=list(name_plot),
-                zmax=1, zmin=-1,
-                annotation_text=z_text, colorscale='agsunset',
-                showscale=True,
-                hoverongaps=True
-            )
-
-        plot_correlation.update_layout(title_text='Discretization Correlation matrix', height=800, width=1096, title_x=0.5, title_y=1, title_font_size=20)
-
-        plot_correlation_div = plot(plot_correlation, output_type='div')
-        
-        
-        return render(request, 'administrator/Diskritisasi.html',{ 'plot_div_dataset': plot_data_div,
-                                                                    'plot_div_data_disc': plot_data_disc_div,
-                                                                    'plot_div_corr': plot_correlation_div,
-            
+        return render(request, 'administrator/Diskritisasi.html',{ 
+                                                                    'DataDiskrit': data_diskrit
                                                                 })
 
     else:

@@ -64,38 +64,88 @@ Hasil | Klasifikasi Cronic Kidney Disease
     <!--===================================================-->
    <div class="panel">
             
-    <div class="panel">
+    <div class="panel-heading">
+        <h3 class="panel-title">Hasil Diskritisasi</h3>
+    </div>
+
+    <div class="panel-body">
+
+        <table id="demo-dt-basic" class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Age</th>
+                    <th>Blood Presure</th>
+                    <th>Specific Gravity</th>
+                    <th>Albumin</th>
+                    <th>Sugar</th>
+                    <th>Red Blood Cells</th>
+                    <th>Pus Cell</th>
+                    <th>Pus Cell Clumps</th>
+                    <th>Bacteria</th>
+                    <th>Blood Glucose Random</th>
+                    <th>Blood Urea</th>
+                    <th>Serum Creatinine</th>
+                    <th>Sodium</th>
+                    <th>Potassium</th>
+                    <th>Haemoglobin</th>
+                    <th>Packed Cell Volume</th>
+                    <th>White Blood Cell Count</th>
+                    <th>Red Blood Cell Count</th>
+                    <th>Hypertension</th>
+                    <th>Diabetes Mellitus</th>
+                    <th>Coronary Artery Disease</th>
+                    <th>Appetite</th>
+                    <th>Pedal Edema</th>
+                    <th>Anemia</th>
+                  
+                    
+                </tr>
+            </thead>
+            <tbody>
+                    {% for x in DataDiskrit %}
+                    <tr>
+                        <td>{{x.0}}</td>
+                        <td>{{x.1}}</td>
+                        <td>{{x.2}}</td>
+                        <td>{{x.3}}</td>
+                        <td>{{x.4}}</td>
+                        <td>{{x.5}}</td>
+                        <td>{{x.6}}</td>
+                        <td>{{x.7}}</td>
+                        <td>{{x.8}}</td>
+                        <td>{{x.9}}</td>
+                        <td>{{x.10}}</td>
+                        <td>{{x.11}}</td>
+                        <td>{{x.12}}</td>
+                        <td>{{x.13}}</td>
+                        <td>{{x.14}}</td>
+                        <td>{{x.15}}</td>
+                        <td>{{x.16}}</td>
+                        <td>{{x.17}}</td>
+                        <td>{{x.18}}</td>
+                        <td>{{x.19}}</td>
+                        <td>{{x.20}}</td>
+                        <td>{{x.21}}</td>
+                        <td>{{x.22}}</td>
+                        <td>{{x.23}}</td>
+                        <td>{{x.24}}</td>
+                        
+                        
+                    </tr>
+                    {% endfor %}
+            </tbody>
+        </table>
         
     </div>
-            
-            <div class="panel">
-              <h3 class="panel-title">Hasil Diskritisasi Data</h3>
-            </div>
-            
-
-            <div class="panel-body demo-nifty-btn">
-                
-                <div class="panel-body">
-                    {% autoescape off %}
-                    {{ plot_div_dataset }}
-                    {% endautoescape %}
-                    
-                </div>
-                <div class="panel-body">
-                    {% autoescape off %}
-                    {{ plot_div_data_disc }}
-                    {% endautoescape %}
-                    
-                </div>
-
-                <div class="panel-body">
-                    {% autoescape off %}
-                    {{ plot_div_corr }}
-                    {% endautoescape %}
-                    
-                </div>
-            
-            </div>
+    
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title">Download</h3>
+        </div>
+        <div class="panel-body demo-nifty-btn">
+          <a  class="btn btn-lg btn-primary" href="/media/hasil_diskritisasi.csv" download>Download Hasil</a>
+          </div>
     </div>
 
     <div class="panel">

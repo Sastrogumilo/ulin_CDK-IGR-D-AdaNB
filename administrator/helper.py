@@ -83,3 +83,48 @@ def datatableConverter2(data):
         # print(data['sentiment'][x])
         data_fitur.append(temp)
     return data_fitur
+
+def datatableConverter3(data):
+    
+    
+    data['id'] = data.index + 1
+    print(data)
+    cols = data.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    data = data[cols]
+    
+    
+    data_fitur = []
+    #data = pd.read_csv(default_storage.path('dataset_encode.csv'))
+    for x in range(len(data['id'])):
+        temp = []
+        temp.append(data['id'][x])
+        temp.append(data['0'][x])
+        temp.append(data['1'][x])
+        temp.append(data['2'][x])
+        temp.append(data['3'][x])
+        temp.append(data['4'][x])
+        temp.append(data['5'][x])
+        temp.append(data['6'][x])
+        temp.append(data['7'][x])
+        temp.append(data['8'][x])
+        temp.append(data['9'][x])
+        temp.append(data['10'][x])
+        temp.append(data['11'][x])
+        temp.append(data['12'][x])
+        temp.append(data['13'][x])
+        temp.append(data['14'][x])
+        temp.append(data['15'][x])
+        temp.append(data['16'][x])
+        temp.append(data['17'][x])
+        temp.append(data['18'][x])
+        temp.append(data['19'][x])
+        temp.append(data['20'][x])
+        temp.append(data['21'][x])
+        temp.append(data['22'][x])
+        temp.append(data['23'][x])
+       
+        
+        # print(data['sentiment'][x])
+        data_fitur.append(temp)
+    return data_fitur
