@@ -13,7 +13,6 @@ from operator import itemgetter
 import zipfile
 import os
 from shutil import copyfile
-from git import head
 
 #Plotly
 import plotly.express as px
